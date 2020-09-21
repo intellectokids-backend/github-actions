@@ -1,0 +1,29 @@
+name: 'Build legacy contaienr'
+description: "Builds and publish legacy service's docker containers"
+inputs:
+  repository:
+    description: 'Repository to push'
+    required: true
+  tag:
+    description: 'Result image tag'
+    required: true
+  src-image:
+    description: 'Image name, that builded by command'
+    required: true
+
+outputs:
+  random-number:
+    description: "Random number"
+    value: ${{ steps.random-number-generator.outputs.random-id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Tag docker image
+      run: docker tag ${{ inputs.src-image }} ${{ inputs.repository }}:${{ inputs.tag }}
+      shell: bash
+    - name: Docker login to erc
+      run: aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 467270046420.dkr.ecr.eu-west-1.amazonaws.com
+      shell: bash
+    - name: Push docker image to ECR
+      run: docker push ${{ inputs.repository }}:${{ inputs.tag }}
+      shell: bash
